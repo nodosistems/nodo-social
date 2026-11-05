@@ -62,6 +62,13 @@ export default function CampanasPage() {
                       <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusStyle[c.status]}`}>{c.status}</span>
                     </div>
 
+                    {c.duration || c.cadence ? (
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted">
+                        {c.duration ? <span className="rounded-full bg-cloud px-2.5 py-1">Dura {c.duration}</span> : null}
+                        {c.cadence ? <span className="rounded-full bg-cloud px-2.5 py-1">Publica {c.cadence}</span> : null}
+                      </div>
+                    ) : null}
+
                     <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
                       <Attr label="Público" value={c.audience} />
                       <Attr label="Sector" value={c.sector} />

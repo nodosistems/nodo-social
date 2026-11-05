@@ -12,6 +12,8 @@ export type Campaign = {
   urgency: string
   formats: string[] // reel, story, carrusel, vídeo
   media: string[] // "Lo generamos nosotros", "Mis fotos", "Mi música"
+  duration: string // cuánto dura la campaña (p. ej. "2 semanas")
+  cadence: string // cada cuánto publica (p. ej. "2 por semana")
   cta: string
   color: string
   status: 'borrador' | 'programada' | 'activa'

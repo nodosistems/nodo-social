@@ -19,6 +19,8 @@ const urgencias = ['Empieza enero, momento de propósitos', 'Plazas limitadas es
 const formatos = ['Reel', 'Story', 'Carrusel', 'Vídeo']
 const medios = ['Lo generamos nosotros', 'Uso mis fotos', 'Mi música']
 const ctas = ['Reservar cita', 'Abrir la calculadora', 'Rellenar el formulario', 'Visitar la web']
+const duraciones = ['1 semana', '2 semanas', '1 mes', 'Continua']
+const cadencias = ['1 por semana', '2 por semana', '3 por semana', 'Diaria']
 
 const meta = [
   { q: '¿Para qué campaña?', help: 'Un nombre y el sector al que va dirigida.' },
@@ -103,6 +105,8 @@ export default function EstrategiaPage() {
     urgency: '',
     formats: [],
     media: [],
+    duration: '2 semanas',
+    cadence: '2 por semana',
     cta: '',
   })
 
@@ -142,16 +146,18 @@ export default function EstrategiaPage() {
     router.push('/campanas')
   }
 
-  const summaryRows: { q: string; v: string }[] = [
-    { q: 'Campaña', v: c.name || '—' },
-    { q: 'Sector', v: c.sector || '—' },
-    { q: 'Tono', v: c.tone || '—' },
-    { q: 'Público', v: c.audience || '—' },
-    { q: 'Objeción', v: c.objection || '—' },
-    { q: 'Urgencia', v: c.urgency || '—' },
-    { q: 'Formatos', v: c.formats.join(', ') || '—' },
-    { q: 'Medios', v: c.media.join(', ') || '—' },
-    { q: 'CTA final', v: c.cta || '—' },
+  const summaryRows: { q: string; v: string; s: number }[] = [
+    { q: 'Campaña', v: c.name || '—', s: 0 },
+    { q: 'Sector', v: c.sector || '—', s: 0 },
+    { q: 'Duración', v: c.duration || '—', s: 0 },
+    { q: 'Cada cuánto publica', v: c.cadence || '—', s: 0 },
+    { q: 'Tono', v: c.tone || '—', s: 1 },
+    { q: 'Público', v: c.audience || '—', s: 2 },
+    { q: 'Objeción', v: c.objection || '—', s: 3 },
+    { q: 'Urgencia', v: c.urgency || '—', s: 4 },
+    { q: 'Formatos', v: c.formats.join(', ') || '—', s: 5 },
+    { q: 'Medios', v: c.media.join(', ') || '—', s: 6 },
+    { q: 'CTA final', v: c.cta || '—', s: 7 },
   ]
 
   return (
@@ -185,6 +191,24 @@ export default function EstrategiaPage() {
                     <div>
                       <label className="mb-1.5 block text-sm font-medium text-ink">Sector al que va dirigida</label>
                       <input className={field} value={c.sector} onChange={(e) => set('sector', e.target.value)} placeholder="Ej: Clínicas de nutrición" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-ink">Duración</label>
+                        <select className={field} value={c.duration} onChange={(e) => set('duration', e.target.value)}>
+                          {duraciones.map((d) => (
+                            <option key={d}>{d}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-ink">Cada cuánto publica</label>
+                        <select className={field} value={c.cadence} onChange={(e) => set('cadence', e.target.value)}>
+                          {cadencias.map((d) => (
+                            <option key={d}>{d}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
                 ) : null}
@@ -271,13 +295,13 @@ export default function EstrategiaPage() {
               <p className="mt-1 text-muted">Esto es lo que el asistente usará para crear tus publicaciones.</p>
 
               <div className="mt-5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white">
-                {summaryRows.map((r, i) => (
+                {summaryRows.map((r) => (
                   <div key={r.q} className="flex items-start justify-between gap-4 px-4 py-3.5">
                     <div>
                       <div className="text-sm text-muted">{r.q}</div>
                       <div className="mt-0.5 text-[15px] font-medium text-ink">{r.v}</div>
                     </div>
-                    <button type="button" onClick={() => setStep(Math.min(i, TOTAL - 1))} className="shrink-0 text-sm font-medium text-navy hover:underline">
+                    <button type="button" onClick={() => setStep(r.s)} className="shrink-0 text-sm font-medium text-navy hover:underline">
                       Editar
                     </button>
                   </div>
