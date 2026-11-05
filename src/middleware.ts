@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { SUPABASE_URL, SUPABASE_ANON_KEY, supabaseConfigured } from '@/lib/supabase/config'
 
 // Rutas que exigen sesión iniciada.
-const PROTECTED = ['/asistente', '/estrategia', '/calendario', '/publicaciones', '/inicio', '/mi-marca']
+const PROTECTED = ['/asistente', '/estrategia', '/campanas', '/calendario', '/publicaciones', '/inicio', '/mi-marca']
 
 export async function middleware(request: NextRequest) {
   // Sin proyecto Supabase todavía: dejamos pasar para poder desarrollar la UI.
