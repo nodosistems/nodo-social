@@ -7,10 +7,11 @@ import { Icon } from './icons'
 import { supabaseConfigured } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/client'
 
-type NavItem = { label: string; href: string; icon: ReactNode }
+type NavItem = { label: string; href: string; icon: ReactNode; desktopOnly?: boolean }
 
 const nav: NavItem[] = [
   { label: 'Asistente', href: '/asistente', icon: Icon.chat },
+  { label: 'Estrategia', href: '/estrategia', icon: Icon.target, desktopOnly: true },
   { label: 'Calendario', href: '/calendario', icon: Icon.calendar },
   { label: 'Publicaciones', href: '/publicaciones', icon: Icon.grid },
   { label: 'Mi marca', href: '/mi-marca', icon: Icon.brand },
@@ -104,7 +105,7 @@ export function AppShell({
 
       {/* Navegación inferior (móvil) */}
       <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t border-white/10 bg-navy py-2.5 text-white/70 md:hidden">
-        {nav.map((n) => (
+        {nav.filter((n) => !n.desktopOnly).map((n) => (
           <Link
             key={n.href}
             href={n.href}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { PageHeader } from '@/components/page-header'
 import { supabaseConfigured } from '@/lib/supabase/config'
 
@@ -13,9 +13,14 @@ type Form = {
   avoid: string
   primary_color: string
   accent_color: string
+  typography: string
+  link_web: string
+  link_calculator: string
+  link_form: string
 }
 
 const tonos = ['Cercano', 'Profesional', 'Cálido', 'Divulgativo', 'Inspirador']
+const fuentes = ['Sora', 'DM Sans', 'Poppins', 'Montserrat', 'Lora', 'Inter']
 
 const field =
   'w-full rounded-xl border border-line bg-white px-4 py-3 text-[15px] text-ink outline-none transition-shadow placeholder:text-muted/60 focus:border-navy/30 focus:ring-2 focus:ring-navy/10'
@@ -44,8 +49,14 @@ export default function MiMarcaPage() {
     avoid: '',
     primary_color: '#12264A',
     accent_color: '#E2603F',
+    typography: '',
+    link_web: '',
+    link_calculator: '',
+    link_form: '',
   })
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const update =
     (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -53,9 +64,19 @@ export default function MiMarcaPage() {
       setSaved(false)
     }
 
+  function onLogo(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) {
+      setLogoPreview(URL.createObjectURL(file))
+      setSaved(false)
+    }
+  }
+
   function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    // TODO: al conectar Supabase, upsert en brand_profiles del workspace activo.
+    // TODO: al conectar Supabase → upsert en brand_profiles del workspace activo
+    // y subir el logo a Supabase Storage (brand_assets). Columnas extra: logo_url,
+    // typography, link_web, link_calculator, link_form (migración 0002).
     setSaved(true)
   }
 
@@ -115,6 +136,54 @@ export default function MiMarcaPage() {
             </div>
           </Card>
 
+          <Card title="Logo" hint="Lo colocamos en las publicaciones que creamos para ti.">
+            <div className="flex items-center gap-4">
+              <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl border border-line bg-cloud">
+                {logoPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logoPreview} alt="Logo" className="h-full w-full object-contain" />
+                ) : (
+                  <span className="text-[11px] text-muted">Sin logo</span>
+                )}
+              </div>
+              <div>
+                <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/svg+xml" onChange={onLogo} className="hidden" />
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-medium text-ink hover:bg-cloud"
+                >
+                  {logoPreview ? 'Cambiar logo' : 'Subir logo'}
+                </button>
+                <p className="mt-1.5 text-xs text-muted">PNG, JPG o SVG. Mejor con fondo transparente.</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="Tipografía" hint="La fuente de tus piezas. Elige una o escribe la tuya.">
+            <div className="flex flex-wrap gap-2">
+              {fuentes.map((f) => {
+                const activo = form.typography === f
+                return (
+                  <button
+                    type="button"
+                    key={f}
+                    onClick={() => {
+                      setForm((prev) => ({ ...prev, typography: f }))
+                      setSaved(false)
+                    }}
+                    className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+                      activo ? 'border-navy bg-navy text-white' : 'border-line bg-white text-ink/80 hover:bg-cloud'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                )
+              })}
+            </div>
+            <input className={field} value={form.typography} onChange={update('typography')} placeholder="O escribe el nombre de tu fuente" />
+          </Card>
+
           <Card title="Colores" hint="Los usamos en las piezas que creamos para ti.">
             <div className="flex gap-6">
               <div>
@@ -134,16 +203,31 @@ export default function MiMarcaPage() {
             </div>
           </Card>
 
+          <Card title="Enlaces de bio" hint="A dónde mandamos a la gente desde las publicaciones y la bio.">
+            <div>
+              <Label>Web</Label>
+              <input className={field} type="url" value={form.link_web} onChange={update('link_web')} placeholder="https://tuclinica.com" />
+            </div>
+            <div>
+              <Label>Calculadora</Label>
+              <input className={field} type="url" value={form.link_calculator} onChange={update('link_calculator')} placeholder="https://… (p. ej. calculadora de hábitos)" />
+            </div>
+            <div>
+              <Label>Formulario</Label>
+              <input className={field} type="url" value={form.link_form} onChange={update('link_form')} placeholder="https://… (reserva o contacto)" />
+            </div>
+          </Card>
+
           <div className="flex items-center gap-3 pt-1">
             <button type="submit" className="rounded-xl bg-coral px-5 py-3 text-[15px] font-semibold text-white transition-opacity hover:opacity-90">
               Guardar cambios
             </button>
             {saved ? (
               <span className="text-sm text-emerald-600">
-                {supabaseConfigured ? 'Guardado ✓' : 'Listo ✓ — se guardará al conectar Supabase'}
+                {supabaseConfigured ? 'Guardado ✓' : 'Listo ✓ — se guardará al conectar el guardado'}
               </span>
             ) : !supabaseConfigured ? (
-              <span className="text-sm text-muted">Vista previa — el guardado se activa al conectar Supabase.</span>
+              <span className="text-sm text-muted">Vista previa — el guardado se activa en el siguiente paso.</span>
             ) : null}
           </div>
         </div>
