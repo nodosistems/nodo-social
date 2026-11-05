@@ -13,6 +13,7 @@ const nav: NavItem[] = [
   { label: 'Asistente', href: '/asistente', icon: Icon.chat },
   { label: 'Estrategia', href: '/estrategia', icon: Icon.target, desktopOnly: true },
   { label: 'Campañas', href: '/campanas', icon: Icon.flag, desktopOnly: true },
+  { label: 'Competencia', href: '/competencia', icon: Icon.search, desktopOnly: true },
   { label: 'Calendario', href: '/calendario', icon: Icon.calendar },
   { label: 'Publicaciones', href: '/publicaciones', icon: Icon.grid },
   { label: 'Mi marca', href: '/mi-marca', icon: Icon.brand },
