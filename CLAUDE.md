@@ -6,7 +6,7 @@ App que gestiona el Instagram de pequeñas empresas de forma automática a trav�
 Tu Instagram en piloto automático, guiado por un asistente. Concepto completo: `/mnt/project-files/conocimiento/nodo-social-concepto-producto.md`.
 
 ## Stack
-- **Frontend:** React + Vite + TypeScript + Tailwind CSS. UI responsive (móvil y escritorio).
+- **Frontend + backend:** Next.js (App Router) + React + TypeScript + Tailwind CSS (+ shadcn/ui). UI responsive (móvil y escritorio). El backend (callback OAuth de Meta, llamadas a la API de Claude, cola de publicación) vive en las acciones de servidor y rutas API de Next.js, nunca en el navegador. Dev: `npm run dev` → http://localhost:3000.
 - **Backend/datos (más adelante):** Supabase (PostgreSQL, Auth, Row Level Security). Un token/credencial de Meta por cliente, cifrado.
 - **Cerebro:** API de Claude (modelo pequeño para el día a día), llamado desde el servidor, nunca desde el navegador.
 - **Publicación:** API oficial de Meta (Instagram Graph API), desde el servidor, con el token de cada cliente (modo cliente → sin App Review para arrancar).

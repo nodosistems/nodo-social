@@ -45,7 +45,7 @@ function Wordmark() {
   )
 }
 
-export default function App() {
+export default function Page() {
   const active = 'asistente'
   return (
     <div className="flex h-full">
