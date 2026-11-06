@@ -5,6 +5,7 @@ import type { ProposedPiece, ScheduledPost } from '@/lib/content'
 import { addScheduled, nextDateFor, SLOT_TIME } from '@/lib/content'
 import { musicLibrary, NO_MUSIC } from '@/lib/music'
 import { getPhotos, type BrandPhoto } from '@/lib/photos'
+import { scheduleToCloud } from '@/lib/schedule-cloud'
 
 const FORMAT_LABEL: Record<string, string> = {
   carrusel: 'Carrusel',
@@ -57,8 +58,10 @@ export function PieceCard({ piece }: { piece: ProposedPiece }) {
       status: 'programada',
       createdAt: Date.now(),
     }
-    addScheduled(post)
+    addScheduled(post) // local: respuesta inmediata en la UI
     setScheduledAt(when)
+    // Nube (para que el servidor pueda publicarla sola). A prueba de fallos: si falla, no molesta.
+    void scheduleToCloud(post, selectedPhoto?.url)
   }
 
   return (
