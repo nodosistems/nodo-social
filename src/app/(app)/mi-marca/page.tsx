@@ -1,23 +1,11 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { PageHeader } from '@/components/page-header'
 import { supabaseConfigured } from '@/lib/supabase/config'
+import { getBrand, saveBrand, emptyBrand, type BrandProfile } from '@/lib/brand'
 
-type Form = {
-  business_name: string
-  sector: string
-  audience: string
-  tone: string
-  talk_about: string
-  avoid: string
-  primary_color: string
-  accent_color: string
-  typography: string
-  link_web: string
-  link_calculator: string
-  link_form: string
-}
+type Form = BrandProfile
 
 const tonos = ['Cercano', 'Profesional', 'Cálido', 'Divulgativo', 'Inspirador']
 const fuentes = ['Sora', 'DM Sans', 'Poppins', 'Montserrat', 'Lora', 'Inter']
@@ -40,23 +28,15 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 export default function MiMarcaPage() {
-  const [form, setForm] = useState<Form>({
-    business_name: '',
-    sector: '',
-    audience: '',
-    tone: '',
-    talk_about: '',
-    avoid: '',
-    primary_color: '#12264A',
-    accent_color: '#E2603F',
-    typography: '',
-    link_web: '',
-    link_calculator: '',
-    link_form: '',
-  })
+  const [form, setForm] = useState<Form>(emptyBrand)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // Carga lo guardado (tras montar, para leer localStorage sin desajustar la hidratación).
+  useEffect(() => {
+    setForm(getBrand())
+  }, [])
 
   const update =
     (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -74,9 +54,11 @@ export default function MiMarcaPage() {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault()
+    // Guarda en el navegador y lo usa el Asistente y el nombre de arriba.
     // TODO: al conectar Supabase → upsert en brand_profiles del workspace activo
     // y subir el logo a Supabase Storage (brand_assets). Columnas extra: logo_url,
     // typography, link_web, link_calculator, link_form (migración 0002).
+    saveBrand(form)
     setSaved(true)
   }
 
@@ -224,10 +206,10 @@ export default function MiMarcaPage() {
             </button>
             {saved ? (
               <span className="text-sm text-emerald-600">
-                {supabaseConfigured ? 'Guardado ✓' : 'Listo ✓ — se guardará al conectar el guardado'}
+                {supabaseConfigured
+                  ? 'Guardado ✓'
+                  : 'Guardado ✓ — el asistente ya usa tu marca (se sincronizará con tu cuenta más adelante)'}
               </span>
-            ) : !supabaseConfigured ? (
-              <span className="text-sm text-muted">Vista previa — el guardado se activa en el siguiente paso.</span>
             ) : null}
           </div>
         </div>

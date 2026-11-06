@@ -2,10 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Icon } from './icons'
 import { supabaseConfigured } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/client'
+import { getBrand } from '@/lib/brand'
 
 type NavItem = { label: string; href: string; icon: ReactNode; desktopOnly?: boolean }
 
@@ -47,7 +48,7 @@ function ClientBrand({ brandName, brandLogoUrl }: { brandName: string; brandLogo
 
 export function AppShell({
   children,
-  brandName = 'Clínica Nutrir',
+  brandName,
   brandLogoUrl,
   instagramConnected = false,
 }: {
@@ -59,6 +60,14 @@ export function AppShell({
   const pathname = usePathname()
   const router = useRouter()
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+
+  // Nombre de marca: el que guardó el cliente en "Mi marca"; si aún no hay, un genérico neutro.
+  const [displayName, setDisplayName] = useState(brandName || 'Tu negocio')
+  useEffect(() => {
+    if (brandName) return
+    const name = getBrand().business_name.trim()
+    if (name) setDisplayName(name)
+  }, [brandName])
 
   async function signOut() {
     if (supabaseConfigured) {
@@ -75,7 +84,7 @@ export function AppShell({
     <div className="flex h-full">
       {/* Sidebar (escritorio) */}
       <aside className="hidden w-64 shrink-0 flex-col bg-navy p-5 text-white/80 md:flex">
-        <ClientBrand brandName={brandName} brandLogoUrl={brandLogoUrl} />
+        <ClientBrand brandName={displayName} brandLogoUrl={brandLogoUrl} />
 
         <nav className="mt-9 flex flex-col gap-1">
           {nav.map((n) => (
