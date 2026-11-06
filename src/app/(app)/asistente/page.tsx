@@ -4,8 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Icon } from '@/components/icons'
 import { PageHeader } from '@/components/page-header'
 import { getBrand, emptyBrand, type BrandProfile } from '@/lib/brand'
+import { parsePlan } from '@/lib/cerebro/parsePlan'
+import { PieceCard } from '@/components/piece-card'
+import type { ProposedPiece } from '@/lib/content'
 
-type ChatMessage = { role: 'user' | 'assistant'; content: string }
+type ChatMessage = { role: 'user' | 'assistant'; content: string; pieces?: ProposedPiece[] }
 
 const chips = [
   'Hazme el plan de esta semana',
@@ -54,12 +57,21 @@ export default function AsistentePage() {
         const { done, value } = await reader.read()
         if (done) break
         acc += decoder.decode(value, { stream: true })
+        // Durante el streaming ocultamos el bloque de datos (```plan …); solo mostramos texto.
+        const visible = acc.split('```plan')[0]
         setMessages((m) => {
           const copy = m.slice()
-          copy[copy.length - 1] = { role: 'assistant', content: acc }
+          copy[copy.length - 1] = { role: 'assistant', content: visible }
           return copy
         })
       }
+      // Al terminar, separamos el texto de las piezas propuestas (se muestran como tarjetas).
+      const parsed = parsePlan(acc)
+      setMessages((m) => {
+        const copy = m.slice()
+        copy[copy.length - 1] = { role: 'assistant', content: parsed.text, pieces: parsed.pieces }
+        return copy
+      })
     } catch {
       setMessages((m) => {
         const copy = m.slice()
@@ -120,10 +132,19 @@ export default function AsistentePage() {
                     </div>
                   </div>
                 ) : (
-                  <div key={i} className="flex">
-                    <div className="max-w-[90%] whitespace-pre-wrap rounded-2xl rounded-tl-md border border-line bg-white px-4 py-3 text-[15px] leading-relaxed text-ink">
-                      {m.content === '' ? <TypingDots /> : m.content}
-                    </div>
+                  <div key={i} className="flex flex-col items-start">
+                    {m.content !== '' || !(m.pieces && m.pieces.length) ? (
+                      <div className="max-w-[90%] whitespace-pre-wrap rounded-2xl rounded-tl-md border border-line bg-white px-4 py-3 text-[15px] leading-relaxed text-ink">
+                        {m.content === '' ? <TypingDots /> : m.content}
+                      </div>
+                    ) : null}
+                    {m.pieces && m.pieces.length > 0 ? (
+                      <div className="w-full max-w-[90%]">
+                        {m.pieces.map((p) => (
+                          <PieceCard key={p.id} piece={p} />
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 ),
               )}
