@@ -4,6 +4,8 @@
 
 import type { BrandProfile } from '@/lib/brand'
 import { skillsBlock } from './skills'
+import { VOZ_HUMANA } from './voz-humana'
+import { GANCHOS } from './ganchos'
 import { musicCatalogForPrompt } from '@/lib/music'
 
 const IDENTIDAD = `Eres el asistente de Nodo Social: gestionas el Instagram de un pequeño negocio (sobre todo clínicas) de forma automática. El cliente te pide por chat qué quiere publicar y tú lo planificas, lo creas (texto de la pieza: carruseles, reels, posts, stories y sus captions) y lo dejas listo para programar.
@@ -86,7 +88,9 @@ export function buildSystemPrompt(brand?: BrandProfile, photos?: PromptPhoto[]):
     memoriaMarca(brand),
     fotosBloque(photos),
     NORMAS,
+    VOZ_HUMANA,
     `SKILLS (lo que sabes hacer; elige la que toque según lo que pida el cliente):\n\n${skillsBlock()}`,
+    GANCHOS,
     planFormat(Boolean(photos && photos.length)),
   ].join('\n\n')
 }
