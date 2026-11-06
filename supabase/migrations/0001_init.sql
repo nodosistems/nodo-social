@@ -80,24 +80,35 @@ alter table public.workspaces        enable row level security;
 alter table public.workspace_members enable row level security;
 alter table public.brand_profiles    enable row level security;
 
+-- Nota: `create policy` no admite `if not exists`; por eso borramos antes de crear.
+-- Así este archivo se puede ejecutar varias veces sin error (idempotente).
+
 -- workspaces
+drop policy if exists "ver workspaces propios" on public.workspaces;
 create policy "ver workspaces propios" on public.workspaces
   for select using (public.is_workspace_member(id));
+drop policy if exists "crear workspace" on public.workspaces;
 create policy "crear workspace" on public.workspaces
   for insert with check (created_by = auth.uid());
+drop policy if exists "editar workspace (admin)" on public.workspaces;
 create policy "editar workspace (admin)" on public.workspaces
   for update using (public.is_workspace_admin(id)) with check (public.is_workspace_admin(id));
+drop policy if exists "borrar workspace (admin)" on public.workspaces;
 create policy "borrar workspace (admin)" on public.workspaces
   for delete using (public.is_workspace_admin(id));
 
 -- workspace_members
+drop policy if exists "ver miembros del workspace" on public.workspace_members;
 create policy "ver miembros del workspace" on public.workspace_members
   for select using (public.is_workspace_member(workspace_id));
+drop policy if exists "gestionar miembros (admin)" on public.workspace_members;
 create policy "gestionar miembros (admin)" on public.workspace_members
   for all using (public.is_workspace_admin(workspace_id)) with check (public.is_workspace_admin(workspace_id));
 
 -- brand_profiles
+drop policy if exists "ver marca del workspace" on public.brand_profiles;
 create policy "ver marca del workspace" on public.brand_profiles
   for select using (public.is_workspace_member(workspace_id));
+drop policy if exists "editar marca del workspace" on public.brand_profiles;
 create policy "editar marca del workspace" on public.brand_profiles
   for all using (public.is_workspace_member(workspace_id)) with check (public.is_workspace_member(workspace_id));
