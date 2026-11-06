@@ -13,11 +13,14 @@ export const SLOT_TIME: Record<Slot, string> = {
   noche: '20:00',
 }
 
-// Una imagen de marca (diseño que genera Nodo: titular + apoyo sobre un fondo de la marca).
+// La imagen de una pieza. Por defecto es un DISEÑO de marca (titular + apoyo sobre un fondo de la
+// marca). Si `photo` tiene el id de una foto de la biblioteca del cliente, la pieza usa esa FOTO
+// (con el titular encima como rótulo). El cliente puede cambiar o quitar la foto en la tarjeta.
 export type BrandImage = {
   headline: string
   subtext?: string
   bg: 'navy' | 'cloud' | 'white'
+  photo?: string // id de una foto de "Mis fotos" (si la pieza usa foto en vez de diseño)
 }
 
 // Pieza propuesta por el asistente (sale de la respuesta estructurada del cerebro).

@@ -24,19 +24,24 @@ const NORMAS = `NORMAS IMPORTANTES (no las saltes nunca):
 - Incluye una llamada a la acción y el enlace que corresponda (web, reserva o "enlace en la bio").
 - El color de acento (coral) es solo para personas o acentos puntuales, nunca de relleno.`
 
-function planFormat(): string {
+function planFormat(hasPhotos: boolean): string {
   return `CUANDO PROPONGAS PIEZAS CONCRETAS PARA PUBLICAR (un plan, una campaña o una pieza suelta), además de tu respuesta normal en texto, añade AL FINAL un bloque de datos para que la app lo muestre en tarjetas. El formato es exactamente así (una sola vez, al final):
 
 \`\`\`plan
 [
-  {"day":"Lunes","slot":"manana","format":"carrusel","topic":"tema","hook":"gancho de 1 línea","caption":"caption listo para publicar","musicId":"none","image":{"headline":"titular corto","subtext":"apoyo opcional","bg":"navy"},"slides":[{"headline":"Slide 1","body":"texto"}]}
+  {"day":"Lunes","slot":"manana","format":"carrusel","topic":"tema","hook":"gancho de 1 línea","caption":"caption listo para publicar","musicId":"none","image":{"headline":"titular corto","subtext":"apoyo opcional","bg":"navy","photo":"none"},"slides":[{"headline":"Slide 1","body":"texto"}]}
 ]
 \`\`\`
 
 Reglas del bloque:
 - "slot": manana | tarde | noche. "format": carrusel | reel | video | post | story.
 - "musicId": SOLO para reel/video; usa un id del catálogo o "none". Catálogo: ${musicCatalogForPrompt()}.
-- "image": el diseño de marca de la pieza (titular + apoyo sobre un fondo). "bg": navy | cloud | white. Si para esa pieza vendría mejor una FOTO real, dilo en el texto ("sube una foto de…") y deja image con un titular igualmente.
+- "image": qué se ve en la pieza. El titular ("headline") y el apoyo ("subtext") van SIEMPRE (si se usa foto, se muestran como rótulo encima). "bg": navy | cloud | white.
+- "image.photo": ${
+    hasPhotos
+      ? 'si alguna foto de la BIBLIOTECA DEL CLIENTE encaja con la pieza, pon aquí su id (de la lista de fotos disponibles). Elige la que mejor ilustre el tema. Si ninguna encaja o dudas, pon "none" y se usará el diseño de marca.'
+      : 'el cliente todavía no ha subido fotos, así que pon siempre "none" (se usará el diseño de marca). Si para una pieza vendría muy bien una foto real, sugiérele en el texto que suba una en "Mis fotos".'
+  }
 - "slides": solo en carrusel (4-8 slides).
 - El texto de tu respuesta NO debe repetir el JSON; explica brevemente y deja el bloque al final.
 - Si NO estás proponiendo piezas (solo conversas o preguntas), NO pongas el bloque.`
@@ -63,13 +68,25 @@ function memoriaMarca(brand?: BrandProfile): string {
   return lineas.join('\n')
 }
 
-export function buildSystemPrompt(brand?: BrandProfile): string {
+// Resumen de la biblioteca de fotos del cliente, para que el cerebro pueda elegir una por su id.
+export type PromptPhoto = { id: string; label: string }
+
+function fotosBloque(photos?: PromptPhoto[]): string {
+  if (!photos || photos.length === 0) {
+    return `FOTOS DEL CLIENTE: todavía no hay fotos subidas en "Mis fotos". Usa el diseño de marca en las piezas. Cuando una foto real ayudaría mucho, sugiérele que suba fotos a "Mis fotos".`
+  }
+  const lista = photos.map((p) => `- ${p.id}: ${p.label || 'sin descripción'}`).join('\n')
+  return `FOTOS DEL CLIENTE (biblioteca "Mis fotos"; puedes usar una en una pieza poniendo su id en image.photo):\n${lista}`
+}
+
+export function buildSystemPrompt(brand?: BrandProfile, photos?: PromptPhoto[]): string {
   return [
     IDENTIDAD,
     DESCUBRIMIENTO,
     memoriaMarca(brand),
+    fotosBloque(photos),
     NORMAS,
     `SKILLS (lo que sabes hacer; elige la que toque según lo que pida el cliente):\n\n${skillsBlock()}`,
-    planFormat(),
+    planFormat(Boolean(photos && photos.length)),
   ].join('\n\n')
 }

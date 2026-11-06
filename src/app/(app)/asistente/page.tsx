@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Icon } from '@/components/icons'
 import { PageHeader } from '@/components/page-header'
 import { getBrand, emptyBrand, type BrandProfile } from '@/lib/brand'
+import { getPhotos, type BrandPhoto } from '@/lib/photos'
 import { parsePlan } from '@/lib/cerebro/parsePlan'
 import { PieceCard } from '@/components/piece-card'
 import type { ProposedPiece } from '@/lib/content'
@@ -19,6 +20,7 @@ const chips = [
 
 export default function AsistentePage() {
   const [brand, setBrand] = useState<BrandProfile>(emptyBrand)
+  const [photos, setPhotos] = useState<BrandPhoto[]>([])
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -26,6 +28,7 @@ export default function AsistentePage() {
 
   useEffect(() => {
     setBrand(getBrand())
+    setPhotos(getPhotos())
   }, [])
 
   // Autoscroll al final cuando llegan mensajes o texto nuevo.
@@ -48,7 +51,11 @@ export default function AsistentePage() {
       const res = await fetch('/api/asistente', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ messages: history, brand }),
+        body: JSON.stringify({
+          messages: history,
+          brand,
+          photos: photos.map((p) => ({ id: p.id, label: p.label })),
+        }),
       })
       if (!res.body) throw new Error('sin respuesta')
       const reader = res.body.getReader()

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ProposedPiece, ScheduledPost } from '@/lib/content'
 import { addScheduled, nextDateFor, SLOT_TIME } from '@/lib/content'
 import { musicLibrary, NO_MUSIC } from '@/lib/music'
+import { getPhotos, type BrandPhoto } from '@/lib/photos'
 
 const FORMAT_LABEL: Record<string, string> = {
   carrusel: 'Carrusel',
@@ -34,13 +35,24 @@ function formatDate(ts: number): string {
 export function PieceCard({ piece }: { piece: ProposedPiece }) {
   const hasMusic = piece.format === 'reel' || piece.format === 'video'
   const [musicId, setMusicId] = useState(piece.musicId ?? NO_MUSIC)
+  const [photoId, setPhotoId] = useState(piece.image.photo ?? '')
+  const [photos, setPhotos] = useState<BrandPhoto[]>([])
   const [scheduledAt, setScheduledAt] = useState<number | null>(null)
+
+  // Fotos disponibles de "Mis fotos" (para elegir/cambiar la de la pieza).
+  useEffect(() => {
+    setPhotos(getPhotos())
+  }, [])
+
+  const selectedPhoto = photos.find((p) => p.id === photoId)
+  const locked = scheduledAt !== null
 
   function onSchedule() {
     const when = nextDateFor(piece.day, piece.slot)
     const post: ScheduledPost = {
       ...piece,
       musicId: hasMusic ? musicId : undefined,
+      image: { ...piece.image, photo: photoId || undefined },
       scheduledAt: when,
       status: 'programada',
       createdAt: Date.now(),
@@ -52,16 +64,23 @@ export function PieceCard({ piece }: { piece: ProposedPiece }) {
   return (
     <div className="mt-3 overflow-hidden rounded-xl border border-line bg-white">
       <div className="flex gap-3 p-3">
-        {/* Vista previa de la imagen de marca (formato vertical de IG) */}
+        {/* Vista previa (formato vertical de IG): foto elegida o diseño de marca */}
         <div
-          className={`grid h-36 w-[115px] shrink-0 place-items-center rounded-lg px-2 text-center ${
-            BG_CLASS[piece.image.bg] ?? BG_CLASS.navy
+          className={`relative grid h-36 w-[115px] shrink-0 place-items-center overflow-hidden rounded-lg px-2 text-center ${
+            selectedPhoto ? 'bg-navy text-white' : BG_CLASS[piece.image.bg] ?? BG_CLASS.navy
           }`}
         >
-          <div>
-            <p className="font-display text-[13px] font-semibold leading-tight">{piece.image.headline}</p>
+          {selectedPhoto ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={selectedPhoto.url} alt={piece.image.headline} className="absolute inset-0 h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+            </>
+          ) : null}
+          <div className="relative">
+            <p className="font-display text-[13px] font-semibold leading-tight drop-shadow">{piece.image.headline}</p>
             {piece.image.subtext ? (
-              <p className="mt-1 text-[10px] opacity-80">{piece.image.subtext}</p>
+              <p className="mt-1 text-[10px] opacity-80 drop-shadow">{piece.image.subtext}</p>
             ) : null}
           </div>
         </div>
@@ -79,13 +98,33 @@ export function PieceCard({ piece }: { piece: ProposedPiece }) {
           </div>
           <p className="mt-1.5 line-clamp-3 text-sm text-ink/80">{piece.caption || piece.hook}</p>
 
+          {/* Selector de foto: solo si el cliente tiene fotos en "Mis fotos" */}
+          {photos.length > 0 ? (
+            <label className="mt-2 flex items-center gap-2 text-[13px] text-muted">
+              🖼️
+              <select
+                value={photoId}
+                onChange={(e) => setPhotoId(e.target.value)}
+                disabled={locked}
+                className="min-w-0 flex-1 rounded-lg border border-line bg-white px-2 py-1 text-[13px] text-ink outline-none disabled:opacity-60"
+              >
+                <option value="">Diseño de marca (sin foto)</option>
+                {photos.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label || 'Foto sin descripción'}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
           {hasMusic ? (
             <label className="mt-2 flex items-center gap-2 text-[13px] text-muted">
               🎵
               <select
                 value={musicId}
                 onChange={(e) => setMusicId(e.target.value)}
-                disabled={scheduledAt !== null}
+                disabled={locked}
                 className="min-w-0 flex-1 rounded-lg border border-line bg-white px-2 py-1 text-[13px] text-ink outline-none disabled:opacity-60"
               >
                 <option value={NO_MUSIC}>Sin música</option>

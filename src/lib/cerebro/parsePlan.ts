@@ -41,6 +41,7 @@ function normalize(raw: RawPiece): ProposedPiece {
       headline: (raw.image?.headline ?? raw.hook ?? topic).toString().trim(),
       subtext: raw.image?.subtext ? raw.image.subtext.toString().trim() : undefined,
       bg,
+      photo: raw.image?.photo ? raw.image.photo.toString().trim() : undefined,
     },
     slides: format === 'carrusel' && Array.isArray(raw.slides)
       ? raw.slides.map((s) => ({

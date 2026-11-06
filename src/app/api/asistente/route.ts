@@ -11,7 +11,7 @@
 
 import Anthropic from '@anthropic-ai/sdk'
 import { CEREBRO_MODEL, cerebroConfigured, AI_DAILY_LIMIT } from '@/lib/cerebro/config'
-import { buildSystemPrompt } from '@/lib/cerebro/prompt'
+import { buildSystemPrompt, type PromptPhoto } from '@/lib/cerebro/prompt'
 import { supabaseConfigured } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
 import type { BrandProfile } from '@/lib/brand'
@@ -20,7 +20,20 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string }
-type Body = { messages?: ChatMessage[]; brand?: BrandProfile }
+type Body = { messages?: ChatMessage[]; brand?: BrandProfile; photos?: PromptPhoto[] }
+
+// Sanea la lista de fotos que manda el cliente (id + etiqueta), por si viene con basura.
+function cleanPhotos(raw: unknown): PromptPhoto[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((p): p is { id: unknown; label?: unknown } => !!p && typeof p === 'object')
+    .map((p) => ({
+      id: String((p as { id: unknown }).id ?? '').trim(),
+      label: String((p as { label?: unknown }).label ?? '').trim().slice(0, 120),
+    }))
+    .filter((p) => p.id.length > 0)
+    .slice(0, 40) // tope prudente para no inflar el prompt
+}
 
 const encoder = new TextEncoder()
 
@@ -117,7 +130,7 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const client = new Anthropic()
-  const system = buildSystemPrompt(body.brand)
+  const system = buildSystemPrompt(body.brand, cleanPhotos(body.photos))
   const sb = supabase
   const ws = workspaceId
   const uid = userId
