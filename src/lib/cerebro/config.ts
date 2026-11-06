@@ -11,3 +11,7 @@ export const CEREBRO_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5'
 // true cuando hay clave puesta en el entorno. Permite que la app arranque y avise con elegancia
 // si todavía no se ha configurado el cerebro.
 export const cerebroConfigured = Boolean(process.env.ANTHROPIC_API_KEY)
+
+// Límite de uso por cliente (workspace) al día, para que nadie dispare la factura de Claude.
+// Configurable con AI_DAILY_LIMIT. Cuenta mensajes del asistente por día (UTC).
+export const AI_DAILY_LIMIT = Number(process.env.AI_DAILY_LIMIT) || 100
